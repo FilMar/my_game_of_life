@@ -4,9 +4,9 @@ use std::time::Duration;
 
 mod resources;
 
-const MAX_X: f32 = 2000f32;
-const MAX_Y: f32 = 2000f32;
-const STEP: usize= 50;
+const MAX_X: f32 = 10000f32;
+const MAX_Y: f32 = 10000f32;
+const STEP: usize= 10;
 const NEAR: usize = 1;
 
 fn main() {
@@ -62,7 +62,7 @@ fn alive_on_click(
     wind: Query<&Window, With<PrimaryWindow>>,
     alives: Query<(&Transform, &Cell)>,
 ) {
-    if mouse.just_pressed(MouseButton::Left) {
+    if mouse.pressed(MouseButton::Left) {
         if let Some(pos) = wind.single().cursor_position() {
             let x = wind.single().size().x;
             let y = wind.single().size().y;
@@ -82,7 +82,6 @@ fn start_on_space(command: Res<ButtonInput<KeyCode>>, mut play: ResMut<Play>) {
             true => false,
             false => true,
         };
-        println!("premuto play {}", play.0);
     }
 }
 
@@ -104,7 +103,6 @@ fn evolve_world(
     let mut to_kills = Vec::new();
     for (t, c) in &alives {
         let index = grid.get_indexs(t.translation.xy());
-        println!("current: {:?}", index);
         let neiboor = grid.get_neiboor(index, NEAR);
         let n: Vec<Vec2> = alives
             .iter()
@@ -113,24 +111,20 @@ fn evolve_world(
             .collect();
         let current = States::evolve(n.iter().count() as u8, true);
         let dead_neib = neiboor.iter().filter(|p| !n.contains(&p));
-        println!("vicini vivi: {:?}", n.iter().map(|p| grid.get_indexs(*p)).collect::<Vec<(usize, usize)>>());
         for pos in dead_neib {
             let index = grid.get_indexs(*pos);
             let neiboor = grid.get_neiboor(index, NEAR);
-            println!("morto: {index:?}");
             let n = alives
                 .iter()
                 .filter(|(t, _)| neiboor.contains(&t.translation.xy()))
                 .count();
             if States::evolve(n as u8, false) == States::Alive {
                 if !to_lives.contains(pos) {
-                    println!("{index:?} ha {n} vicini quindi nasce",);
                     to_lives.push(*pos);
                 }
             }
         }
         if current == States::Dead {
-            println!("{} vicini quindi muore", n.iter().count());
             to_kills.push(c.0);
         }
     }
@@ -140,7 +134,6 @@ fn evolve_world(
     for p in to_kills {
         despawn_cell(&mut command, p);
     }
-    println!("----------------------------------");
 }
 
 // -------------------------------------------------

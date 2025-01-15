@@ -67,8 +67,8 @@ impl Grid {
     }
 
     pub fn get_neiboor(&self, (x, y): (usize, usize), near: usize) -> Vec<Vec2> {
-        let xn = [x + near, x, x - near];
-        let yn = [y + near, y, y - near];
+        let xn = [x + near, x, x.checked_sub(near).unwrap_or(x)];
+        let yn = [y + near, y, y.checked_sub(near).unwrap_or(y)];
         let mut res = Vec::new();
         for i in xn {
             for j in yn {
